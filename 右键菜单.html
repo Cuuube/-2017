@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>右键弹出菜单</title>
+	<style type="text/css">
+		* {margin: 0; padding: 0;}
+		a {text-decoration: none; color: black;}
+		a:link {color: black;}
+		a:visited {color: black;}
+		.main {
+			position: relative;
+			height: 200px;
+			padding:50px;
+			text-align: center;
+			border: 1px solid darkgray;
+			border-radius: 5px;
+			box-shadow: inset 0 -1px 10px darkgray;
+			background: #eee;
+			/*cursor: pointer;*/
+		}
+		.main>p {
+			font-size: 30px;
+			line-height: 200px;
+		}
+		.contextMenu {
+			position: absolute;
+			padding: 5px 0;
+			margin: 0;
+			width: 120px;
+			/*height: 150px;*/
+			display: none;
+			border: 1px solid darkgray;
+			border-radius: 5px;
+			box-shadow: 4px 4px 5px rgba(158,158,158,0.5);
+			background: #fafafa;
+		}
+		.contextMenu>li {
+			list-style: none;
+			padding-left:15px;
+			line-height: 24px;
+			font-size: 12px;
+		}
+		.contextMenu>li:hover,.contextMenu>li:hover a{
+			background: darkgray;
+			color: white;
+		}
+		.contextMenu>li>a {
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<div class="main">
+		<p>请在此区域点击右键</p>
+	</div>
+	<!--隐藏的右键菜单-->
+	<ul class="contextMenu" id="popMenu">
+		<li><a href="javascript:;">Menu Item 1</a></li>
+		<li><a href="javascript:;">Menu Item 2</a></li>
+		<li><a href="javascript:;">Menu Item 3</a></li>
+	</ul>
+
+</body>
+<script type="text/javascript">
+	var main = document.getElementsByClassName('main')[0];
+	main.addEventListener('contextmenu',function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+		//对弹出菜单的操作
+		var popMenu = document.getElementById('popMenu');
+		popMenu.style.display = 'block';
+		if ((main.offsetWidth - e.clientX) >= popMenu.offsetWidth) {
+			popMenu.style.left = e.clientX + "px";
+		} else {
+			popMenu.style.left = (e.clientX - popMenu.offsetWidth) + "px";
+		}
+		if ((main.offsetHeight - e.clientY) >= popMenu.offsetHeight) {
+			popMenu.style.top = e.clientY + "px";
+		} else {
+			popMenu.style.top = (e.clientY - popMenu.offsetHeight) + "px";
+		}
+		// console.log((main.offsetWidth - e.clientX) <= popMenu.offsetWidth);
+		
+		//阻止弹出菜单之上再弹出右键菜单
+		popMenu.oncontextmenu = function () {
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
+		}
+
+	})
+	
+	//点击文档别处使菜单消失
+	document.addEventListener('click',function () {
+		document.getElementsByClassName('contextMenu')[0].style.display = 'none';
+	})
+	//给菜单
+	var menuItems = document.querySelectorAll('#popMenu>li>a');
+	for (let i = 0; i< menuItems.length; i++) {
+		menuItems[i].addEventListener('click',function () {
+			console.log(i);
+			// TODO
+		})
+	}
+
+</script>
+</html>
