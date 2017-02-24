@@ -95,12 +95,12 @@
 	document.addEventListener('click',function () {
 		document.getElementsByClassName('contextMenu')[0].style.display = 'none';
 	})
-	//给菜单
+	//给菜单添加点击功能
 	var menuItems = document.querySelectorAll('#popMenu>li>a');
 	for (let i = 0; i< menuItems.length; i++) {
 		menuItems[i].addEventListener('click',function () {
 			console.log(i);
-			// TODO
+			// TODO...
 		})
 	}
 
