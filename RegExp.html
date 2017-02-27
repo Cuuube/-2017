@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>RegExp</title>
+	<style type="text/css">
+		.main{margin: 50px auto; width: 900px;}
+		.subContent {box-sizing: border-box;float: left; width:50%; padding: 20px 30px; background: #eee;}
+		.subContent:first-child {text-align: right;}
+		.print {height: 30px;}
+		input {margin: 5px 0;}
+	</style>
+</head>
+<body>
+	<div class="main">
+		<div class="subContent">
+			<h3>请输入手机号码</h3>
+			<input type="number" name="phoneNumber" /><br>
+			<input type="button" value="测试" />
+			<div class="print"></div>
+		</div>
+		
+		<div class="subContent">
+			<h3>请输入一系列单词，用空格隔开</h3>
+			<input type="text" name="wordRepeat" /><br>
+			<input type="button" value="测试" />
+			<div class="print"></div>
+		</div>
+	</div>
+
+</body>
+<script type="text/javascript">
+	var config = {
+		phoneNumberExpReg: /1[35789]\d{9}|1[35789]\d-?\d{4}-?\d{4}/g,
+		wordRepeatExpReg: new RegExp(/(\b\w+\b)\s+\1/g)
+	}
+	document.querySelector("input[type=button]").addEventListener("click", phoneNumberCheck);
+	document.querySelectorAll("input[type=button]")[1].addEventListener("click", wordRepeatCheck);
+	function phoneNumberCheck () {
+		var phoneNumberInput = document.querySelector("input[name=phoneNumber]"),
+			phoneNumber = phoneNumberInput.value;
+		if (config.phoneNumberExpReg.test(phoneNumber)) {
+			document.getElementsByClassName('print')[0].innerHTML = "您输入的号码符合手机号格式。";
+		} else {
+			document.getElementsByClassName('print')[0].innerHTML = "您输入的号码不符合手机号格式。";
+		}
+	}
+	function wordRepeatCheck () {
+		var wordRepeatInput = document.querySelector("input[name=wordRepeat]"),
+			wordRepeat = wordRepeatInput.value;
+		if (config.wordRepeatExpReg.test(wordRepeat)) {
+			document.getElementsByClassName('print')[1].innerHTML = "您输入的字符串中存在相邻单词重复。";
+		} else {
+			document.getElementsByClassName('print')[1].innerHTML = "您输入的字符串中不存在相邻单词重复。";
+		}
+	}
+</script>
+</html>
