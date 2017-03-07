@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>markdown简易模仿</title>.
+	<link rel="stylesheet" type="text/css" href="../bootstrap-3.3.7-dist/css/bootstrap.min.css">
+	<style type="text/css">
+		textarea, #output{
+			float: left;
+			position: relative;
+			margin: 50px;
+			width: 400px;
+			height: 600px;
+			border: 1px solid darkgray;
+			overflow-y: auto;
+			word-wrap:break-word;
+		}
+		button:first-child {
+			position: absolute;
+			left: 478px;
+			top: 341px;
+		}
+		button:nth-child(2) {
+			position: absolute;
+			left: 460px;
+			top: 371px;
+		}
+	</style>
+
+</head>
+<body>
+	<textarea id="input"></textarea>
+	<div id="output"></div>
+	<div>
+		<button>click</button>
+		<button>showCode</button>
+	</div>
+	
+</body>
+<script>
+	// 单行元素的正则式
+	var config = {
+		p: /^[a-zA-Z0-9_\u4e00-\u9fa5]+.*$/,
+		h1: /^\#\s+.*$/,
+		h2: /^\#{2}\s.*$/,
+		h3: /^\#{3}\s.*$/,
+		h4: /^\#{4}\s.*$/,
+		h5: /^\#{5}\s.*$/,
+		h6: /^\#{6}\s.*$/,
+		blockquote: /^\>\s.*$/,
+		a: /^\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([fhtps:/]{6,8}\w+.*\.?\w+\/?\)$|^\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([./]{0,}\w+.*\.?\w+\/?\)$/,
+		img: /^\!\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([fhtps:/]{6,8}\w+.*\.\w+\/?\)$|^\!\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([./]{0,}\w+.*\.\w+\/?\)$/,
+	}
+	// 元素块的正则式
+	var configBlock = {
+		pre: '```',
+		blockquote: '>',
+		div: 'div'
+	}
+	// 全局变量用来运算和储存块级数据
+	var temp = {
+		// 块的类型
+		blockType: false,
+		value: '',
+	}
+	// 初始化运算变量
+	function reset() {
+		temp = {
+			blockType: false,
+			value: '',
+		}
+	}
+
+	// !!!!!!!!!!!将输入内容翻译成代码的主函数!!!!!!!!!!!!!!
+	
+	function change () {
+		let inp = document.getElementById('input');
+		// 得到输入的字符串
+		let inputText = inp.value;
+		// 按行切分入数组
+		let inputTextArray = inputText.split('\n');
+	//	console.log(inputTextArray);
+		
+		//对每个数组元素都执行判断和重组
+		for (let i = 0; i < inputTextArray.length; i++) {
+				// 调用check函数执行变化
+			inputTextArray[i] = check(inputTextArray[i]);
+		}
+	//	console.log(inputTextArray);
+	
+		// 翻译完毕，将数组整合成字符串给右边输出的div
+		document.getElementById('output').innerHTML = inputTextArray.join('');
+	//	console.log(inputTextArray.join());
+		reset();
+	}
+
+	// 每行翻译的执行者
+	function check(str) {
+		// 优先判断改行是否代码块的开始
+		for (let i in configBlock) {
+			// 判断代码块的开始行
+			if (str === configBlock[i] && temp.blockType === false) {
+				// 启动对块执行，type设置成代码块的标识符‘```’之类的
+				temp.blockType = configBlock[i];
+				// 缓冲数据中根据标识符建立html元素
+				temp.value = '<'+i+'>';
+				// 不给数组返回确切值
+				return null;
+			// 对本标识符的、且本行输入语句不是起始和终点的语句
+			} else if (str !== configBlock[i] && temp.blockType === configBlock[i]) {
+				// 直接吧语句内容加到缓冲数据中。并加个换行。
+				temp.value = temp.value + str + '\n';
+				// 不给数组返回确切值
+				return null;
+			// 判断代码块的结束行，要求代码块标识符和之前一样。
+			} else if (str === temp.blockType && temp.blockType === configBlock[i]) {
+				// 添加闭合标签
+				let final = temp.value + '</'+i+'>';
+				// 还原缓冲数据到初始
+				reset();
+				// 将缓冲数据取出，并返回给数组
+				return final;
+			}
+		}
+		// 不是代码块的情况下，上面for循环不会执行。单行的元素进入下面的判断
+		for (let i in config) {
+			// 对于每个元素都进行正则式匹配。
+			if (config[i].test(str)) {
+				//console.log(i);
+				
+				// 如果匹配到了，根据正则式获得的元素，整容成该html元素并返回给数组
+				if (i === 'p') {
+					return  '<p>'+str+'</p>';
+				} else if (i === 'a') {
+					let name = str.substring(str.indexOf('[')+1, str.indexOf(']')),
+						url = str.substring(str.indexOf('(')+1, str.indexOf(')'));
+					return '<a href="'+url+'">'+name+'</a>';
+				} else if (i === 'img') {
+					let name = str.substring(str.indexOf('[')+1, str.indexOf(']')),
+						url = str.substring(str.indexOf('(')+1, str.indexOf(')'));
+					return '<img src="'+url+'" title="'+name+'" alt="'+name+'">';
+				} else {
+					return '<'+ i +'>'+str.substring(str.indexOf(' ')+1,str.length)+'</'+ i +'>';
+				}
+				
+			}
+		}
+		// 如果全部匹配失败，则说明不可认知，直接返回文本节点。
+		return str;
+	}
+// 初始化，加上一些事件和设置默认显示内容
+	(function innalise() {
+		let inp = document.getElementById('input'),
+			oup = document.getElementById('output');
+//---------------默认显示----------------------
+let txt = `# H1标题
+## H2标题
+### H3标题
+#### H4标题
+##### H5标题
+###### H6标题
+[网站链接](http://zxod.space/app/)
+![滑稽](http://zxod.space/img/huaji.png)
+paragraphparagra,phparagra,phparag.raphpara,graphpa.ragraphpar,agraphpa,ra,gra,phparagra,phpar.agraph.
+para,graphparag,raphparagr.aphpa.
+
+> “所有的名人名言都是我说的。” ——马克吐温 （单行引用）
+
+>
+“我没说过这句话
+。。。也可能说过。” ——鲁迅（引用块）
+>
+
+\`\`\`
+//pre代码块
+function add(x, y) {
+    return x + y;
+}
+\`\`\`
+`;
+document.getElementById('input').value = txt;
+change();
+//-------------------------------------
+		// 增加按钮点击事件
+		document.getElementsByTagName('button')[0].onclick = change;
+		document.getElementsByTagName('button')[1].onclick = function () {
+			// 给查看翻译后的HTML文本。
+			// 但这个地方做的太粗糙了。待更新
+			alert(oup.innerHTML);
+		};
+		// 试着给文本框加了个tab空四格的功能
+		inp.onkeydown = function (e) {
+			if (e.which === 9) {
+				// 阻止默认tab键
+				e.preventDefault();
+				// 得到当前光标位置（光标后紧跟的字符的位置）
+				let start = this.selectionStart;
+				// 根据光标位置将文本切成两份，并且往中间夹四个空格
+				let beforeStr = this.value.substring(0,start) + '    ',
+					afterStr = this.value.substring(start,this.value.length);
+				// 合并添加完毕的文本
+				this.value = beforeStr + afterStr;
+				// 设置焦点在第几个位置。因为插入了四个空格，所以设置焦点在插入位置的4个后。（参数意义是从第几到第几，之间的文本设置选中）
+				this.setSelectionRange(start+4,start+4);
+				//e.target.value += '    ';
+			}
+		}
+		// 给输入框添加按键自动翻译文本的功能
+		inp.addEventListener('keyup', change);
+	})();
+
+</script>
+</html>
