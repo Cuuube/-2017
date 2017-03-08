@@ -17,12 +17,12 @@
 		}
 		button:first-child {
 			position: absolute;
-			left: 478px;
+			left: 492px;
 			top: 341px;
 		}
 		button:nth-child(2) {
 			position: absolute;
-			left: 460px;
+			left: 475px;
 			top: 371px;
 		}
 	</style>
@@ -47,9 +47,15 @@
 		h4: /^\#{4}\s.*$/,
 		h5: /^\#{5}\s.*$/,
 		h6: /^\#{6}\s.*$/,
+		br: /^\s+$/,
+		hr: /^-{3,}/,
 		blockquote: /^\>\s.*$/,
 		a: /^\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([fhtps:/]{6,8}\w+.*\.?\w+\/?\)$|^\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([./]{0,}\w+.*\.?\w+\/?\)$/,
 		img: /^\!\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([fhtps:/]{6,8}\w+.*\.\w+\/?\)$|^\!\[[a-zA-Z0-9_\u4e00-\u9fa5]+\]\([./]{0,}\w+.*\.\w+\/?\)$/,
+	}
+	var configInline = {
+		span: /\*.+\*/gm,
+		code: /\`([^*]+?)\`/gm,
 	}
 	// 元素块的正则式
 	var configBlock = {
@@ -73,7 +79,7 @@
 
 	// !!!!!!!!!!!将输入内容翻译成代码的主函数!!!!!!!!!!!!!!
 	
-	function change () {
+	function markdownParse () {
 		let inp = document.getElementById('input');
 		// 得到输入的字符串
 		let inputText = inp.value;
@@ -83,19 +89,19 @@
 		
 		//对每个数组元素都执行判断和重组
 		for (let i = 0; i < inputTextArray.length; i++) {
-				// 调用check函数执行变化
-			inputTextArray[i] = check(inputTextArray[i]);
+				// 调用lineParse函数执行变化
+			inputTextArray[i] = lineParse(inputTextArray[i]);
 		}
 	//	console.log(inputTextArray);
 	
 		// 翻译完毕，将数组整合成字符串给右边输出的div
-		document.getElementById('output').innerHTML = inputTextArray.join('');
+		document.getElementById('output').innerHTML = inlineParse(inputTextArray.join(''));
 	//	console.log(inputTextArray.join());
 		reset();
 	}
 
 	// 每行翻译的执行者
-	function check(str) {
+	function lineParse(str) {
 		// 优先判断改行是否代码块的开始
 		for (let i in configBlock) {
 			// 判断代码块的开始行
@@ -139,6 +145,8 @@
 					let name = str.substring(str.indexOf('[')+1, str.indexOf(']')),
 						url = str.substring(str.indexOf('(')+1, str.indexOf(')'));
 					return '<img src="'+url+'" title="'+name+'" alt="'+name+'">';
+				} else if (i === 'hr' || i === 'br') {
+					return '<'+i+'>';
 				} else {
 					return '<'+ i +'>'+str.substring(str.indexOf(' ')+1,str.length)+'</'+ i +'>';
 				}
@@ -148,8 +156,25 @@
 		// 如果全部匹配失败，则说明不可认知，直接返回文本节点。
 		return str;
 	}
+
+	// 行间样式的翻译
+	function inlineParse (str) {
+		//console.log(str);
+		if (str === null) {
+			return ;
+		}
+		for (let i in configInline) {
+			str = str.replace(configInline[i], function (oran, data) {
+				console.log(oran,data);
+				return '<'+i+'>'+oran.substring(1,oran.length-1)+'</'+i+'>';
+			})
+			
+		}
+		return str;
+	}
+
 // 初始化，加上一些事件和设置默认显示内容
-	(function innalise() {
+	(function init() {
 		let inp = document.getElementById('input'),
 			oup = document.getElementById('output');
 //---------------默认显示----------------------
@@ -179,10 +204,10 @@ function add(x, y) {
 \`\`\`
 `;
 document.getElementById('input').value = txt;
-change();
+markdownParse();
 //-------------------------------------
 		// 增加按钮点击事件
-		document.getElementsByTagName('button')[0].onclick = change;
+		document.getElementsByTagName('button')[0].onclick = markdownParse;
 		document.getElementsByTagName('button')[1].onclick = function () {
 			// 给查看翻译后的HTML文本。
 			// 但这个地方做的太粗糙了。待更新
@@ -206,7 +231,7 @@ change();
 			}
 		}
 		// 给输入框添加按键自动翻译文本的功能
-		inp.addEventListener('keyup', change);
+		inp.addEventListener('keyup', markdownParse);
 	})();
 
 </script>
